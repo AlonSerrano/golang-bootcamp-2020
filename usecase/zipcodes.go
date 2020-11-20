@@ -1,4 +1,4 @@
-package util
+package usecase
 
 import (
 	"context"
@@ -10,7 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AlonSerrano/GolangBootcamp/pkg/models"
+	"github.com/AlonSerrano/GolangBootcamp/models"
+
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,12 +19,48 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
+var rows = []map[string]string{
+	{"isoCode": "MX-AGU"},
+	{"isoCode": "MX-BCN"},
+	{"isoCode": "MX-BCN"},
+	{"isoCode": "MX-BCS"},
+	{"isoCode": "MX-CAM"},
+	{"isoCode": "MX-COA"},
+	{"isoCode": "MX-COL"},
+	{"isoCode": "MX-CHP"},
+	{"isoCode": "MX-CHH"},
+	{"isoCode": "MX-CMX"},
+	{"isoCode": "MX-DUR"},
+	{"isoCode": "MX-GUA"},
+	{"isoCode": "MX-GRO"},
+	{"isoCode": "MX-HID"},
+	{"isoCode": "MX-JAL"},
+	{"isoCode": "MX-MEX"},
+	{"isoCode": "MX-MIC"},
+	{"isoCode": "MX-MOR"},
+	{"isoCode": "MX-NAY"},
+	{"isoCode": "MX-NLE"},
+	{"isoCode": "MX-OAX"},
+	{"isoCode": "MX-PUE"},
+	{"isoCode": "MX-QUE"},
+	{"isoCode": "MX-ROO"},
+	{"isoCode": "MX-SLP"},
+	{"isoCode": "MX-SIN"},
+	{"isoCode": "MX-SON"},
+	{"isoCode": "MX-TAB"},
+	{"isoCode": "MX-TAM"},
+	{"isoCode": "MX-TLA"},
+	{"isoCode": "MX-VER"},
+	{"isoCode": "MX-YUC"},
+	{"isoCode": "MX-ZAC"},
+}
+
+// GetAndSave the function obtains the zip codes then deletes the table and finishes inserting the new data
 func GetAndSave(client *mongo.Client) *mongo.InsertManyResult {
 	zipCodes, zipCodesModel := getCSVCodes()
-	fmt.Println("Se han insertado %i codigos postales", len(zipCodesModel))
+	fmt.Println("Have been inserted %i postal codes", len(zipCodesModel))
 	dropZipCodes(client)
-	mr := saveZipCodes(zipCodes, client)
-	return mr
+	return saveZipCodes(zipCodes, client)
 }
 
 func dropZipCodes(client *mongo.Client) bool {
@@ -33,13 +70,13 @@ func dropZipCodes(client *mongo.Client) bool {
 	return true
 }
 
+// GetAndSave Search the zipcodes database the neighborhood by zip code
 func SearchZipCodes(cp string, client *mongo.Client) []models.ZipCodeCSV {
 	collection := client.Database("bootcamp").Collection("ZipCodes")
 	findOpts := options.Find()
 	var results []models.ZipCodeCSV
 	filter := bson.D{{"codigoPostal", cp}}
 	cur, err := collection.Find(context.TODO(), filter, findOpts)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,7 +87,6 @@ func SearchZipCodes(cp string, client *mongo.Client) []models.ZipCodeCSV {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		results = append(results, s)
 	}
 	if err := cur.Err(); err != nil {
@@ -81,45 +117,6 @@ func getCSVCodes() ([]interface{}, []models.ZipCodeCSV) {
 	return zipCodes, zipCodesModel
 }
 
-func edoToISO(stateCode int) string {
-	rows := []map[string]string{
-		{"isoCode": "MX-AGU"},
-		{"isoCode": "MX-BCN"},
-		{"isoCode": "MX-BCN"},
-		{"isoCode": "MX-BCS"},
-		{"isoCode": "MX-CAM"},
-		{"isoCode": "MX-COA"},
-		{"isoCode": "MX-COL"},
-		{"isoCode": "MX-CHP"},
-		{"isoCode": "MX-CHH"},
-		{"isoCode": "MX-CMX"},
-		{"isoCode": "MX-DUR"},
-		{"isoCode": "MX-GUA"},
-		{"isoCode": "MX-GRO"},
-		{"isoCode": "MX-HID"},
-		{"isoCode": "MX-JAL"},
-		{"isoCode": "MX-MEX"},
-		{"isoCode": "MX-MIC"},
-		{"isoCode": "MX-MOR"},
-		{"isoCode": "MX-NAY"},
-		{"isoCode": "MX-NLE"},
-		{"isoCode": "MX-OAX"},
-		{"isoCode": "MX-PUE"},
-		{"isoCode": "MX-QUE"},
-		{"isoCode": "MX-ROO"},
-		{"isoCode": "MX-SLP"},
-		{"isoCode": "MX-SIN"},
-		{"isoCode": "MX-SON"},
-		{"isoCode": "MX-TAB"},
-		{"isoCode": "MX-TAM"},
-		{"isoCode": "MX-TLA"},
-		{"isoCode": "MX-VER"},
-		{"isoCode": "MX-YUC"},
-		{"isoCode": "MX-ZAC"},
-	}
-	return rows[stateCode]["isoCode"]
-}
-
 func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
 	var zipCodes []interface{}
 	var zipCodesModel []models.ZipCodeCSV
@@ -142,7 +139,6 @@ func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
 			if header == nil {
 				header = record
 			} else {
-
 				dict := map[string]string{}
 				for i := range header {
 					dict[header[i]] = record[i]
@@ -156,7 +152,7 @@ func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
 					Id:           u,
 					CodigoPostal: dict["d_codigo"],
 					Estado:       dict["d_estado"],
-					EstadoISO:    edoToISO(isoCode),
+					EstadoISO:    rows[isoCode]["isoCode"],
 					Municipio:    dict["D_mnpio"],
 					Ciudad:       dict["d_ciudad"],
 					Barrio:       dict["d_asenta"],
@@ -164,7 +160,6 @@ func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
 				zipCodes = append(zipCodes, parsingZipCode)
 				zipCodesModel = append(zipCodesModel, parsingZipCode)
 				rows = append(rows, dict)
-
 			}
 		} else {
 			r.Read()

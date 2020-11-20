@@ -6,6 +6,6 @@ type ZipCodeCSV struct {
 	Estado       string `bson:"estado"`
 	EstadoISO    string `bson:"estadoISO"`
 	Municipio    string `bson:"municipio"`
-	Ciudad       string `bson:"ciudad"`
+	Ciudad       string `bson:"ciudad,omitempty"`
 	Barrio       string `bson:"barrio"`
 }

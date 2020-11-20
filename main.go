@@ -1,21 +1,22 @@
 package main
 
 import (
-	"github.com/AlonSerrano/GolangBootcamp/pkg/handlers"
-	"github.com/labstack/echo/v4"
 	"log"
+
+	"github.com/AlonSerrano/GolangBootcamp/handlers"
+
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
 	e := echo.New()
 	v1 := e.Group("/api/v1")
 	h := handlers.NewPerissonConnectorHandler()
-	direcciones := v1.Group("/direcciones")
+	address := v1.Group("/address")
 	{
-		direcciones.GET("/populate", h.HandlePopulateZipCodes)
-		direcciones.GET("/search/:zipCode", h.HandleSearchZipCodes)
+		address.GET("/populate", h.HandlePopulateZipCodes)
+		address.GET("/search/:zipCode", h.HandleSearchZipCodes)
 	}
-
 	serverAddress := "localhost:8080"
 	log.Printf("server started at %s\n", serverAddress)
 	e.Logger.Fatal(e.Start(serverAddress))

@@ -1,6 +1,5 @@
 package models
 
-//keycloak response
 type TokenInfoResp struct {
 	AccessToken      string `json:"access_token"`
 	ExpiresIn        uint64 `json:"expires_in"`

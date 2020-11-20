@@ -12,22 +12,26 @@ You need to install MongoDB either with the normal [installer](https://docs.mong
 
 Docker
 
-    docker pull mongo
+```shell script
+docker pull mongo
+```
+    
     
 
 ## Run the code
 
-On the path go to the folder /cmd.
+Run
 
-`cd cmd`
-
-Then run
-
-    go install
+```shell script
+ go install
+```
+   
 
 And finally
 
-     go run main.go
+ ```shell script
+  go run main.goo install
+ ```    
 
   
 
@@ -35,23 +39,22 @@ And finally
 
 To be able to consult the data, you must first fill the tables, so you must execute a get-type request to the method:
 
-    localhost:8080/api/v1/direcciones/populate
+    localhost:8080/api/v1/address/populate
 
 *What happens behind the scenes is that the code makes a request to a government endpoint which returns a csv with all the zip codes, a 15mb file _(145,110 approximate zip codes)_    
     
 Once you get the response of the inserted ids that will take approximately 15 seconds on complete, you can now check the colonies that belong to a postal code with the method
 
-    localhost:8080/api/v1/direcciones/search/:zipCode
+    localhost:8080/api/v1/address/search/:zipCode
 
 For example:
 
-    localhost:8080/api/v1/direcciones/search/97306
+    localhost:8080/api/v1/address/search/97306
 
 And an example of the previous request would be the following:
 
 
- 
-
+  ```json 
     [
       {
         "Id": "56eb060711d84d67ab164e862c5eb0f1",
@@ -108,6 +111,7 @@ And an example of the previous request would be the following:
         "Barrio": "Chichi Díaz"
       }
     ]
+```
 
 ## Unit test
 
@@ -117,12 +121,18 @@ Two unit tests were created that test these two end-point on the path
 
 First run the unit test 
 
-> Test_getCSVCodes()
-
+ ```go
+  Test_getCSVCodes()
+```
 And then 
 
-> Test_searchZipCodes()
+ ```go
+  Test_searchZipCodes()
+```
 
 Another unit test was created to test the correct flushing of the zipcodes table, run it if you want
 
-> Test_dropZipCodes()
+ ```go
+  Test_dropZipCodes()
+```
+
