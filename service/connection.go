@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 )
 
-// GetConnDB This method is to establish the connection with the mongo database
-func GetConnDB() *mongo.Client {
+func getConnDB() *mongo.Client {
+	//TODO next steps modify the assignments to make it a configuration file
 	host := "localhost"
 	port := 27017
 	clientOpts := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", host, port))
@@ -23,4 +24,10 @@ func GetConnDB() *mongo.Client {
 	}
 	fmt.Println("Congratulations, you're already connected to MongoDB!")
 	return client
+}
+
+// UseZipCodeTable This method is to establish the connection with the mongo database and select the table ZipCodes
+func UseZipCodeTable() *mongo.Collection {
+	client := getConnDB()
+	return client.Database("bootcamp").Collection("ZipCodes")
 }

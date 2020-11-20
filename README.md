@@ -6,7 +6,7 @@ The following project is designed to obtain the postal data of the official post
   
 ## Requirements  
   
-You need to install MongoDB either with the normal [installer](https://docs.mongodb.com/manual/installation/) or in docker and run it on 
+You need to install MongoDB either with the normal [installer](https://docs.mongodb.com/manual/installation/) or in docker and run it on
 
 > port 27017
 
@@ -15,8 +15,6 @@ Docker
 ```shell script
 docker pull mongo
 ```
-    
-    
 
 ## Run the code
 
@@ -25,36 +23,32 @@ Run
 ```shell script
  go install
 ```
-   
 
 And finally
 
  ```shell script
   go run main.goo install
- ```    
-
-  
+ ```
 
 ## About the project
 
 To be able to consult the data, you must first fill the tables, so you must execute a get-type request to the method:
 
-    localhost:8080/api/v1/address/populate
+  >localhost:8080/api/v1/address/populate
 
-*What happens behind the scenes is that the code makes a request to a government endpoint which returns a csv with all the zip codes, a 15mb file _(145,110 approximate zip codes)_    
-    
+*What happens behind the scenes is that the code makes a request to a government endpoint which returns a csv with all the zip codes, a 15mb file _(145,110 approximate zip codes)_
+
 Once you get the response of the inserted ids that will take approximately 15 seconds on complete, you can now check the colonies that belong to a postal code with the method
 
-    localhost:8080/api/v1/address/search/:zipCode
+   >localhost:8080/api/v1/address/search/:zipCode
 
 For example:
 
-    localhost:8080/api/v1/address/search/97306
+   >localhost:8080/api/v1/address/search/97306
 
 And an example of the previous request would be the following:
 
-
-  ```json 
+  ```json
     [
       {
         "Id": "56eb060711d84d67ab164e862c5eb0f1",
@@ -119,12 +113,13 @@ Two unit tests were created that test these two end-point on the path
 
 > /golang-bootcamp-2020/pkg/util/zipcodes_test.go
 
-First run the unit test 
+First run the unit test
 
  ```go
   Test_getCSVCodes()
 ```
-And then 
+
+And then
 
  ```go
   Test_searchZipCodes()
@@ -135,4 +130,3 @@ Another unit test was created to test the correct flushing of the zipcodes table
  ```go
   Test_dropZipCodes()
 ```
-

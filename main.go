@@ -17,6 +17,7 @@ func main() {
 		address.GET("/populate", h.HandlePopulateZipCodes)
 		address.GET("/search/:zipCode", h.HandleSearchZipCodes)
 	}
+	//TODO next steps modify the assignments to make it a configuration file
 	serverAddress := "localhost:8080"
 	log.Printf("server started at %s\n", serverAddress)
 	e.Logger.Fatal(e.Start(serverAddress))

@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -56,23 +57,21 @@ var rows = []map[string]string{
 }
 
 // GetAndSave the function obtains the zip codes then deletes the table and finishes inserting the new data
-func GetAndSave(client *mongo.Client) *mongo.InsertManyResult {
+func GetAndSave(collection *mongo.Collection) *mongo.InsertManyResult {
 	zipCodes, zipCodesModel := getCSVCodes()
 	fmt.Println("Have been inserted %i postal codes", len(zipCodesModel))
-	dropZipCodes(client)
-	return saveZipCodes(zipCodes, client)
+	dropZipCodes(collection)
+	return saveZipCodes(zipCodes, collection)
 }
 
-func dropZipCodes(client *mongo.Client) bool {
-	collection := client.Database("bootcamp").Collection("ZipCodes")
+func dropZipCodes(collection *mongo.Collection) bool {
 	collection.Drop(context.TODO())
 	fmt.Printf("Droppped table")
 	return true
 }
 
-// GetAndSave Search the zipcodes database the neighborhood by zip code
-func SearchZipCodes(cp string, client *mongo.Client) []models.ZipCodeCSV {
-	collection := client.Database("bootcamp").Collection("ZipCodes")
+// SearchZipCodes Search the zipcodes database the neighborhood by zip code
+func SearchZipCodes(cp string, collection *mongo.Collection) []models.ZipCodeCSV {
 	findOpts := options.Find()
 	var results []models.ZipCodeCSV
 	filter := bson.D{{"codigoPostal", cp}}
@@ -96,8 +95,7 @@ func SearchZipCodes(cp string, client *mongo.Client) []models.ZipCodeCSV {
 	return results
 }
 
-func saveZipCodes(zip []interface{}, client *mongo.Client) *mongo.InsertManyResult {
-	collection := client.Database("bootcamp").Collection("ZipCodes")
+func saveZipCodes(zip []interface{}, collection *mongo.Collection) *mongo.InsertManyResult {
 	insertManyResult, err := collection.InsertMany(context.TODO(), zip)
 	if err != nil {
 		log.Fatal(err)
@@ -106,6 +104,16 @@ func saveZipCodes(zip []interface{}, client *mongo.Client) *mongo.InsertManyResu
 }
 
 func getCSVCodes() ([]interface{}, []models.ZipCodeCSV) {
+	getZipCodesCSVFile()
+	csvFile, err := os.Open("zipcodes.csv")
+	if err != nil {
+		log.Fatalln("Couldn't open the csv file", err)
+	}
+	zipCodes, zipCodesModel := csvToMap(csvFile)
+	return zipCodes, zipCodesModel
+}
+
+func getZipCodesCSVFile() {
 	url := "https://www.correosdemexico.gob.mx/datosabiertos/cp/cpdescarga.txt"
 	response, err := http.Get(url)
 	if err != nil {
@@ -113,8 +121,15 @@ func getCSVCodes() ([]interface{}, []models.ZipCodeCSV) {
 	}
 	defer response.Body.Close()
 	stream := charmap.ISO8859_1.NewDecoder().Reader(response.Body)
-	zipCodes, zipCodesModel := csvToMap(stream)
-	return zipCodes, zipCodesModel
+	csvFile, err := os.Create("zipcodes.csv")
+	if err != nil {
+		log.Fatalf("failed creating file: %s", err)
+	}
+	defer csvFile.Close()
+	_, err = io.Copy(csvFile, stream)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
@@ -124,7 +139,6 @@ func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
 	r.Comma = '|'
 	r.LazyQuotes = true
 	r.FieldsPerRecord = -1
-	rows := []map[string]string{}
 	var header []string
 	firstLine := true
 	for {
@@ -159,7 +173,6 @@ func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
 				}
 				zipCodes = append(zipCodes, parsingZipCode)
 				zipCodesModel = append(zipCodesModel, parsingZipCode)
-				rows = append(rows, dict)
 			}
 		} else {
 			r.Read()

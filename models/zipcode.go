@@ -1,5 +1,6 @@
 package models
 
+// ZipCodeCSV this structure is the base to define the zipcodes
 type ZipCodeCSV struct {
 	Id           string `bson:"_id"`
 	CodigoPostal string `bson:"codigoPostal"`

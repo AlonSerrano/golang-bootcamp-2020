@@ -10,15 +10,16 @@ import (
 )
 
 func Test_getCSVCodes(t *testing.T) {
-	//TODO mock de mongo
-	client := service.GetConnDB()
-	assert.NotEqual(t, 0, len(GetAndSave(client).InsertedIDs), "Records have been found")
+	//TODO mock of mongo
+	collection := service.UseZipCodeTable()
+	assert.NotEqual(t, 0, len(GetAndSave(collection).InsertedIDs), "Records have been found")
 }
 
 func Test_searchZipCodes(t *testing.T) {
-	client := service.GetConnDB()
+	//TODO mock of mongo
+	collection := service.UseZipCodeTable()
 	assert.Condition(t, func() bool {
-		r := SearchZipCodes("97306", client)
+		r := SearchZipCodes("97306", collection)
 		fmt.Println(r)
 		if len(r) != 0 {
 			return true
@@ -28,6 +29,6 @@ func Test_searchZipCodes(t *testing.T) {
 }
 
 func Test_dropZipCodes(t *testing.T) {
-	client := service.GetConnDB()
-	assert.Equal(t, true, dropZipCodes(client), "")
+	collection := service.UseZipCodeTable()
+	assert.Equal(t, true, dropZipCodes(collection), "")
 }
