@@ -6,7 +6,7 @@ The following project is designed to obtain the postal data of the official post
   
 ## Requirements  
 
-First [install](https://github.com/AlonSerrano/golang-bootcamp-2020/blob/Final_Deliverable/captures/swagger.png) go 
+First [install](https://golang.org/doc/install) go 
   
 You need to install MongoDB either with the normal [installer](https://docs.mongodb.com/manual/installation/) or in  [docker](https://docs.docker.com/get-docker/) and run it on
 
@@ -54,7 +54,7 @@ swag init
  ```
 This command automatically updates the interface of swagger with the comments added in each method
 
-![Sawgger Interface](https://github.com/AlonSerrano/golang-bootcamp-2020/captures/swagger.png)
+![Sawgger Interface](https://github.com/AlonSerrano/golang-bootcamp-2020/blob/Final_Deliverable/captures/swagger.png)
 
 To be able to fill the data you need to register a user
 ```shell script
