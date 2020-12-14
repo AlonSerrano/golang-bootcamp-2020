@@ -1,0 +1,232 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Get the neighborhood by ZipCodes of Mexico",
+        "title": "App",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/address/populate": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "When invoking this method, the postal codes will be obtained in a .csv file to proceed with the elimination of the current table in mongo and finish with the insertion with the new file",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "Populate the DB from Internet",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/address/search/{zipCode}": {
+            "get": {
+                "description": "When invoking this method, the neighborhoods belonging to a postal code will be obtained",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "address"
+                ],
+                "summary": "Search by zipCode",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Zip Code",
+                        "name": "zipCode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ZipCodeCSV"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/signIn": {
+            "post": {
+                "description": "By sending email and password it will return a token object",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "SignIn a user into the app",
+                "parameters": [
+                    {
+                        "description": "User params",
+                        "name": "userParams",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SignInReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TokenInfoResp"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/signUp": {
+            "post": {
+                "description": "By sending params it will register a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "SignUp Register a user in the system",
+                "parameters": [
+                    {
+                        "description": "User Info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TokenInfoResp"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.SignInReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SignUpRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TokenInfoResp": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "birthdate": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "secondLastName": {
+                    "type": "string"
+                },
+                "secondName": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ZipCodeCSV": {
+            "type": "object",
+            "properties": {
+                "barrio": {
+                    "type": "string"
+                },
+                "ciudad": {
+                    "type": "string"
+                },
+                "codigoPostal": {
+                    "type": "string"
+                },
+                "estado": {
+                    "type": "string"
+                },
+                "estadoISO": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "municipio": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

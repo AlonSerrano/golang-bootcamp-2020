@@ -1,0 +1,150 @@
+basePath: /api/v1
+definitions:
+  models.SignInReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.SignUpRes:
+    properties:
+      message:
+        type: string
+    type: object
+  models.TokenInfoResp:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  models.User:
+    properties:
+      birthdate:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      secondLastName:
+        type: string
+      secondName:
+        type: string
+    type: object
+  models.ZipCodeCSV:
+    properties:
+      barrio:
+        type: string
+      ciudad:
+        type: string
+      codigoPostal:
+        type: string
+      estado:
+        type: string
+      estadoISO:
+        type: string
+      id:
+        type: string
+      municipio:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Get the neighborhood by ZipCodes of Mexico
+  title: App
+  version: "1.0"
+paths:
+  /address/populate:
+    get:
+      description: When invoking this method, the postal codes will be obtained in a .csv file to proceed with the elimination of the current table in mongo and finish with the insertion with the new file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SignUpRes'
+      security:
+      - ApiKeyAuth: []
+      summary: Populate the DB from Internet
+      tags:
+      - address
+  /address/search/{zipCode}:
+    get:
+      consumes:
+      - application/json
+      description: When invoking this method, the neighborhoods belonging to a postal code will be obtained
+      parameters:
+      - description: Zip Code
+        in: path
+        name: zipCode
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ZipCodeCSV'
+            type: array
+      summary: Search by zipCode
+      tags:
+      - address
+  /user/signIn:
+    post:
+      description: By sending email and password it will return a token object
+      parameters:
+      - description: User params
+        in: body
+        name: userParams
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignInReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenInfoResp'
+      summary: SignIn a user into the app
+      tags:
+      - user
+  /user/signUp:
+    post:
+      consumes:
+      - application/json
+      description: By sending params it will register a user
+      parameters:
+      - description: User Info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenInfoResp'
+      summary: SignUp Register a user in the system
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,9 +11,8 @@ import (
 )
 
 func getConnDB() *mongo.Client {
-	//TODO next steps modify the assignments to make it a configuration file
-	host := "localhost"
-	port := 27017
+	host := viper.GetString("DBAddress")
+	port := viper.GetInt64("DBPort")
 	clientOpts := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", host, port))
 	client, err := mongo.Connect(context.TODO(), clientOpts)
 	if err != nil {
@@ -30,4 +30,10 @@ func getConnDB() *mongo.Client {
 func UseZipCodeTable() *mongo.Collection {
 	client := getConnDB()
 	return client.Database("bootcamp").Collection("ZipCodes")
+}
+
+// UseUserTable This method is to establish the connection with the mongo database and select the table User
+func UseUserTable() *mongo.Collection {
+	client := getConnDB()
+	return client.Database("bootcamp").Collection("User")
 }
