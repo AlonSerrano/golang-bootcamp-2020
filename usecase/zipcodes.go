@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,61 +12,30 @@ import (
 
 	"github.com/AlonSerrano/GolangBootcamp/models"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/text/encoding/charmap"
 )
 
-var rows = []map[string]string{
-	{"isoCode": "MX-AGU"},
-	{"isoCode": "MX-BCN"},
-	{"isoCode": "MX-BCN"},
-	{"isoCode": "MX-BCS"},
-	{"isoCode": "MX-CAM"},
-	{"isoCode": "MX-COA"},
-	{"isoCode": "MX-COL"},
-	{"isoCode": "MX-CHP"},
-	{"isoCode": "MX-CHH"},
-	{"isoCode": "MX-CMX"},
-	{"isoCode": "MX-DUR"},
-	{"isoCode": "MX-GUA"},
-	{"isoCode": "MX-GRO"},
-	{"isoCode": "MX-HID"},
-	{"isoCode": "MX-JAL"},
-	{"isoCode": "MX-MEX"},
-	{"isoCode": "MX-MIC"},
-	{"isoCode": "MX-MOR"},
-	{"isoCode": "MX-NAY"},
-	{"isoCode": "MX-NLE"},
-	{"isoCode": "MX-OAX"},
-	{"isoCode": "MX-PUE"},
-	{"isoCode": "MX-QUE"},
-	{"isoCode": "MX-ROO"},
-	{"isoCode": "MX-SLP"},
-	{"isoCode": "MX-SIN"},
-	{"isoCode": "MX-SON"},
-	{"isoCode": "MX-TAB"},
-	{"isoCode": "MX-TAM"},
-	{"isoCode": "MX-TLA"},
-	{"isoCode": "MX-VER"},
-	{"isoCode": "MX-YUC"},
-	{"isoCode": "MX-ZAC"},
-}
+var isoStateAbbreviation = [32]string{"MX-AGU", "MX-BCN", "MX-BCS", "MX-CAM", "MX-CHP", "MX-CHH", "MX-COA", "MX-COL", "MX-CMX", "MX-DUR", "MX-GUA", "MX-GRO", "MX-HID", "MX-JAL", "MX-MEX", "MX-MIC", "MX-MOR", "MX-NAY", "MX-NLE", "MX-OAX", "MX-PUE", "MX-QUE", "MX-ROO", "MX-SLP", "MX-SIN", "MX-SON", "MX-TAB", "MX-TAM", "MX-TLA", "MX-VER", "MX-YUC", "MX-ZAC"}
 
-// GetAndSave the function obtains the zip codes then deletes the table and finishes inserting the new data
-func GetAndSave(collection *mongo.Collection) *mongo.InsertManyResult {
+// UpdateRecords the function obtains the zip codes then deletes the table and finishes inserting the new data
+func UpdateRecords(collection *mongo.Collection, c echo.Context) models.SignUpRes {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
 	zipCodes, zipCodesModel := getCSVCodes()
-	fmt.Println("Have been inserted %i postal codes", len(zipCodesModel))
 	dropZipCodes(collection)
-	return saveZipCodes(zipCodes, collection)
-}
-
-func dropZipCodes(collection *mongo.Collection) bool {
-	collection.Drop(context.TODO())
-	fmt.Printf("Droppped table")
-	return true
+	saveZipCodes(zipCodes, collection)
+	return models.SignUpRes{
+		Message: "Have been inserted " + strconv.Itoa(len(zipCodesModel)) + " postal codes updated by " + email,
+	}
 }
 
 // SearchZipCodes Search the zipcodes database the neighborhood by zip code
@@ -95,6 +63,12 @@ func SearchZipCodes(cp string, collection *mongo.Collection) []models.ZipCodeCSV
 	return results
 }
 
+func dropZipCodes(collection *mongo.Collection) bool {
+	collection.Drop(context.TODO())
+	logrus.Info("Dropped table")
+	return true
+}
+
 func saveZipCodes(zip []interface{}, collection *mongo.Collection) *mongo.InsertManyResult {
 	insertManyResult, err := collection.InsertMany(context.TODO(), zip)
 	if err != nil {
@@ -104,31 +78,31 @@ func saveZipCodes(zip []interface{}, collection *mongo.Collection) *mongo.Insert
 }
 
 func getCSVCodes() ([]interface{}, []models.ZipCodeCSV) {
-	getZipCodesCSVFile()
+	createZipCodesCSVFile()
 	csvFile, err := os.Open("zipcodes.csv")
 	if err != nil {
-		log.Fatalln("Couldn't open the csv file", err)
+		logrus.Error("Couldn't open the csv file", err)
 	}
 	zipCodes, zipCodesModel := csvToMap(csvFile)
 	return zipCodes, zipCodesModel
 }
 
-func getZipCodesCSVFile() {
-	url := "https://www.correosdemexico.gob.mx/datosabiertos/cp/cpdescarga.txt"
+func createZipCodesCSVFile() {
+	url := viper.GetString("ZipCodesDB")
 	response, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Error(err)
 	}
 	defer response.Body.Close()
 	stream := charmap.ISO8859_1.NewDecoder().Reader(response.Body)
 	csvFile, err := os.Create("zipcodes.csv")
 	if err != nil {
-		log.Fatalf("failed creating file: %s", err)
+		logrus.Error("failed creating file: ", err)
 	}
 	defer csvFile.Close()
 	_, err = io.Copy(csvFile, stream)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Error(err)
 	}
 }
 
@@ -139,45 +113,41 @@ func csvToMap(reader io.Reader) ([]interface{}, []models.ZipCodeCSV) {
 	r.Comma = '|'
 	r.LazyQuotes = true
 	r.FieldsPerRecord = -1
-	var header []string
-	firstLine := true
+	if _, err := r.Read(); err != nil {
+		panic(err)
+	}
+	header, err := r.Read()
+	if err != nil {
+		panic(err)
+	}
 	for {
-		if firstLine == false {
-			record, err := r.Read()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
-			if header == nil {
-				header = record
-			} else {
-				dict := map[string]string{}
-				for i := range header {
-					dict[header[i]] = record[i]
-				}
-				u := strings.Replace(uuid.New().String(), "-", "", -1)
-				isoCode, err := strconv.Atoi(dict["c_estado"])
-				if err != nil {
-					continue
-				}
-				parsingZipCode := models.ZipCodeCSV{
-					Id:           u,
-					CodigoPostal: dict["d_codigo"],
-					Estado:       dict["d_estado"],
-					EstadoISO:    rows[isoCode]["isoCode"],
-					Municipio:    dict["D_mnpio"],
-					Ciudad:       dict["d_ciudad"],
-					Barrio:       dict["d_asenta"],
-				}
-				zipCodes = append(zipCodes, parsingZipCode)
-				zipCodesModel = append(zipCodesModel, parsingZipCode)
-			}
-		} else {
-			r.Read()
-			firstLine = false
+		record, err := r.Read()
+		if err == io.EOF {
+			break
 		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		dict := map[string]string{}
+		for i := range header {
+			dict[header[i]] = record[i]
+		}
+		u := strings.Replace(uuid.New().String(), "-", "", -1)
+		isoCode, err := strconv.Atoi(dict["c_estado"])
+		if err != nil {
+			continue
+		}
+		parsingZipCode := models.ZipCodeCSV{
+			Id:           u,
+			CodigoPostal: dict["d_codigo"],
+			Estado:       dict["d_estado"],
+			EstadoISO:    isoStateAbbreviation[isoCode-1],
+			Municipio:    dict["D_mnpio"],
+			Ciudad:       dict["d_ciudad"],
+			Barrio:       dict["d_asenta"],
+		}
+		zipCodes = append(zipCodes, parsingZipCode)
+		zipCodesModel = append(zipCodesModel, parsingZipCode)
 	}
 	return zipCodes, zipCodesModel
 }

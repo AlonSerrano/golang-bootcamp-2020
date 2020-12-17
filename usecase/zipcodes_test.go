@@ -9,12 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_getCSVCodes(t *testing.T) {
-	//TODO mock of mongo
-	collection := service.UseZipCodeTable()
-	assert.NotEqual(t, 0, len(GetAndSave(collection).InsertedIDs), "Records have been found")
-}
-
 func Test_searchZipCodes(t *testing.T) {
 	//TODO mock of mongo
 	collection := service.UseZipCodeTable()
