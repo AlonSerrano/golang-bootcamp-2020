@@ -1,4 +1,4 @@
-# ZipCode of Mexico Golang for the Bootcamp  
+# ZipCode of Mexico
   
 ## Introduction  
   
